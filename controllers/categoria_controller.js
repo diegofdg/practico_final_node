@@ -1,7 +1,7 @@
 const express = require('express');
 const app=express();
 const util= require('util');
-const conn=require('../conexion');
+const conn=require('../conexion/conexion');
 
 
 conn.connect((error)=>{
