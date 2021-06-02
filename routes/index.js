@@ -1,9 +1,11 @@
+//Importamos las dependencias
 const express = require('express');
 const router = express.Router();
 
+//Importamos los controladores
+const home_controller = require('../controllers/home_controller');
 const categoriasController = require('../controllers/categoriasController');
 const personasController = require('../controllers/personasController');
-const home_controller = require('../controllers/home_controller');
 
 router.use(express.json())
 router.use(express.urlencoded({ extended: true }))

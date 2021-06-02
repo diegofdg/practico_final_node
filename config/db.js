@@ -1,9 +1,9 @@
 const Sequelize=require('sequelize');
 
-const db=new Sequelize('biblioteca', 'root', '', {
-  host: '127.0.0.1',
-  dialect: 'mysql',
-  port: '3306',
+const db=new Sequelize(process.env.BD_NOMBRE, process.env.BD_USER, process.env.BD_PASSWORD, {
+  host: process.env.BD_HOST,  
+  port: process.env.BD_PORT,
+  dialect: 'mysql',      
   operatorsAliases:false,
   define:{
       timestamps:false

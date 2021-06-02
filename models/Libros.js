@@ -14,7 +14,7 @@ const Libros = db.define('libros', {
 }, {
     hooks: {
         beforeCreate(libro) {
-            const nombre = libro.nombre.toUpperCase().trim();
+            const nombre = libro.nombre.toUpperCase().trim();            
         }
     }
 });

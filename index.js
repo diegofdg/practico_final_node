@@ -1,15 +1,17 @@
 const express=require('express');
 //const bodyParser = require('body-parser');
-const app=express();
-const port=process.env.PORT||3000;
-const host=process.env.HOST||'localhost';
 
+const app=express();
+
+// Importamos la dependencia dotenv para configurar las variables de entrono
+require('dotenv').config({ path: 'variables.env' });
+const port=process.env.PORT|| 8888;
+const host=process.env.HOST||'0.0.0.0';
 
 //app.use(express.urlencoded()); //body formulario
 //app.use(express.json()); // body en formato json
 
 const db = require('./config/db');
-
 
 db.authenticate()
 .then(()=>{
@@ -19,18 +21,15 @@ db.authenticate()
 })
 .catch((error)=>console.log(error.message))
 
-
 const routes =require('./routes/index');
 app.use('/', routes);
 
 app.use((error,req,res,next)=>{
-    console.log('entre'); 
-    res.status(413).send({'error':error.message});     
+    console.log('Hubo un error inesperado'); 
+    res.status(413).send({'Error inesperado':error.message});     
 });
 
-
-
-//Servidor
+//Creamos el Servidor
 app.listen(port,host,(req,res)=>{
     console.log('Servidor '+host+' escuchando puerto:'+port);
 });
