@@ -24,6 +24,7 @@ db.authenticate()
 const routes =require('./routes/index');
 app.use('/', routes);
 
+//Qué hace esto????
 app.use((error,req,res,next)=>{
     console.log('Hubo un error inesperado'); 
     res.status(413).send({'Error inesperado':error.message});     

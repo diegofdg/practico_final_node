@@ -1,4 +1,5 @@
 const { raw } = require('body-parser');
+
 const personas = require('../models/personas');
 
 const personasController = {};
@@ -14,7 +15,7 @@ personasController.personasGetAll = async(req, res) => {
             return res.json(result).status(200);
         }
     } catch (err) {
-        res.json(err);
+        res.status(413).json(err);
     }
 };
 
@@ -33,7 +34,7 @@ personasController.personaGetId = async(req, res) => {
             return res.status(200).json(result[0]);
         }
     } catch (err) {
-        res.json(err);
+        res.status(413).json(err);
     }
 }
 
@@ -41,10 +42,31 @@ personasController.personaGetId = async(req, res) => {
 personasController.personaAdd = async(req, res) => {
 
     try {
+        
         const nombre = req.body.nombre;
         const apellido = req.body.apellido;
         const alias = req.body.alias;
         const email = req.body.email;
+
+                
+        //Valido nombre tenga contenido y sea STRING
+        if(!nombre || !/[a-z]+$/i.test(nombre.trim())){
+            return res.json({message: "El nombre debe contener solo letras y no puede estar vacío"});
+        }
+        
+        //Valido apellido tenga contenido y sea STRING
+        if(!apellido || !/[a-z]+$/i.test(apellido.trim())){
+            return res.json({message: "El apellido debe contener solo letras y no puede estar vacío"});
+        }
+
+        //Valido alias tenga contenido y sea STRING
+        if(!alias || !/[a-z]+$/i.test(alias.trim())){
+            return res.json({message: "El alias debe contener solo letras y no puede estar vacío"});
+        }
+
+        if(!/^[-\w.%+]{1,64}@(?:[A-Z0-9-]{1,63}\.){1,125}[A-Z]{2,63}$/i.test(email)){
+            return res.json({message: "El email debe tener cierta estructura: ejemplo@ejemplo.com"});
+        }
 
         //Verifico exista el email en la base de datos
         const verifEmail = await personas.findAll({ where: { email } });
@@ -67,7 +89,7 @@ personasController.personaAdd = async(req, res) => {
             return res.status(404).json({ message: 'Error: El email ya se encuentra registrado' });
         }
     } catch (err) {
-        res.json(err);
+        res.status(413).json(err);
     }
 }
 
@@ -87,6 +109,21 @@ personasController.personaUpdateId = async(req, res) => {
             const nombre = req.body.nombre;
             const apellido = req.body.apellido;
             const alias = req.body.alias;
+
+            //Valido nombre tenga contenido y sea STRING
+            if(!nombre || !/[a-z]+$/i.test(nombre.trim())){
+                return res.json({message: "El nombre debe contener solo letras y no puede estar vacío"});
+            }
+        
+            //Valido apellido tenga contenido y sea STRING
+                if(!apellido || !/[a-z]+$/i.test(apellido.trim())){
+                return res.json({message: "El apellido debe contener solo letras y no puede estar vacío"});
+            }
+
+            //Valido alias tenga contenido y sea STRING
+            if(!alias || !/[a-z]+$/i.test(alias.trim())){
+                return res.json({message: "El alias debe contener solo letras y no puede estar vacío"});
+            }
             
             // si existe el id, tratamos de actualizarlo con los datos enviados por post
             try {
@@ -114,7 +151,7 @@ personasController.personaUpdateId = async(req, res) => {
             //return res.send(result).status(200);
         }
     } catch (err) {
-        res.json(err);
+        res.status(413).json(err);
     }
 
 }
@@ -127,13 +164,24 @@ personasController.personaDeleteId = async(req, res) => {
         console.log(result);
         if (result == 0) {
             return res.status(404).json({ message: 'No existe la persona a eliminar' });
-        } else {
+        }
+        //falta corroborar
+        //
+        //
+        
+        //validar que la categoría no tenga ningún libro para eliminar      
+        result=await categorias.destroy({FROM: {libro}, where :{id_persona}});
+        
+        if (result.length > 0) {
+            throw new Error("Esta persona tiene libros asociados, no se puede borrar");
+        }
+        else {
             return res.status(200).json({
                 message: 'Persona con id:' + id + ' eliminada'
             });
         }
     } catch (err) {
-        res.json(err);
+        res.status(413).json(err);
     }
 }
 

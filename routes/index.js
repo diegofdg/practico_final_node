@@ -6,6 +6,7 @@ const router = express.Router();
 const home_controller = require('../controllers/home_controller');
 const categoriasController = require('../controllers/categoriasController');
 const personasController = require('../controllers/personasController');
+const librosController = require('../controllers/librosController');
 
 router.use(express.json())
 router.use(express.urlencoded({ extended: true }))
@@ -27,6 +28,8 @@ router.put('/persona/:id', personasController.personaUpdateId);
 router.delete('/persona/:id', personasController.personaDeleteId);
 
 //Rutas Libros
-
+router.get("/libro", librosController.libroGetAll);
+router.get("/libroGetId", librosController.libroGetId);
+router.post("/libro", librosController.libroCreate);
 
 module.exports = router;

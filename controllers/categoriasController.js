@@ -46,9 +46,18 @@ categoriaGetNombre=async(nombre)=>{
 // Controlador para crear una categoria - POST
 exports.categoriaCreate=async(req,res,next)=>{
     try{
-        if(req.body.nombre==null || req.body.nombre.trim()=='')   throw new Error('Se esperaba un Parametro Nombre:String.');
+        //if(req.body.nombre==null || req.body.nombre.trim()=='')   throw new Error('Se esperaba un Parametro Nombre:String.');
+        
+        //validación de nombre: campo no vacío, no INT
+        //Combino con la validación de arriba xq esa toma INT como válido
+        if(!req.body.nombre || !/[a-z]+$/i.test(req.body.nombre.trim())){
+            throw new Error("El nombre debe contener solo letras y no puede estar vacío");
+        }
+
         const nombre=req.body.nombre.trim();
-        if(await categoriaGetNombre(nombre)) throw new Error('La Categoria ya se encuentra Ingresada.');   
+
+        if(await categoriaGetNombre(nombre)) throw new Error('La Categoria ya se encuentra Ingresada.');
+
         result=await categorias.create({nombre :nombre}); 
         if(result!=null){
             res.json(result.dataValues);
@@ -63,14 +72,29 @@ exports.categoriaCreate=async(req,res,next)=>{
 // Controlador para eliminar una categoria por id - DELETE
 exports.categoriaDelete=async(req,res,next)=>{
     try{
+        //Esta validación la sacaría...no se activa
         if(req.params.id==null)   throw new Error('Se esperaba un Parametro id:Int.');
+        
         const id=req.params.id;
         if(!parseInt(id,10)) throw new Error('Se esperaba un Numero.');
         const result=await categorias.destroy({where :{id}}); 
         console.log(result);
+
         if(result==0)
         { 
             throw new Error('Categoria No Encontrada.');
+        }
+        
+        //falta corroborar
+        //
+        //        
+        //valida que la categoría no tenga ningún libro para eliminar      
+        result=await categorias.destroy({FROM: {libro}, where :{id_categoria}});
+        //query = "SELECT * FROM libro WHERE categoria_id = ?";
+        //respuesta = await qy(query, [req.params.id]);
+
+        if (result.length > 0) {
+            throw new Error("Esta categoría tiene libros asociados, no se puede borrar");
         }
         else  res.json({'mensaje':'Se Borro Correctamente.'});
     }
