@@ -10,10 +10,11 @@ const Categorias=db.define('categorias', {
     nombre:{
         type:Sequelize.STRING(30),
         allowNull:false,
-        validate:{
-            customF(value){
-                if(value.trim()==''){throw new Error('Cadena Vacia');}
-            }
+        validate: {                        
+            is: {
+                args: ["^[a-z]+$",'i'],
+                msg: 'El nombre no puede estar vacio o contener números'
+            },        
         }
     }    
 },{

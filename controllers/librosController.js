@@ -1,13 +1,13 @@
 //Importamos las dependencias
-const categorias=require('../models/Categorias');
+const libros=require('../models/Libros');
 
 exports.libroGetAll = async(req, res) => {
 
     try {
 
-        const result = await personas.findAll();
+        const result = await libros.findAll();
         if (result.length === 0) {
-            throw new Error("No hay personas registradas");
+            throw new Error("No hay libros registradas");
         }
         res.status(200).json({"Los libros prestados son": result});
 

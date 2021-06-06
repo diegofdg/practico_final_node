@@ -24,7 +24,7 @@ db.authenticate()
 const routes =require('./routes/index');
 app.use('/', routes);
 
-//Qué hace esto????
+// Manejo de los errores con un middleware
 app.use((error,req,res,next)=>{
     console.log('Hubo un error inesperado'); 
     res.status(413).send({'Error inesperado':error.message});     

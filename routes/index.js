@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 
 //Importamos los controladores
-const home_controller = require('../controllers/home_controller');
+const homeController = require('../controllers/homeController');
 const categoriasController = require('../controllers/categoriasController');
 const personasController = require('../controllers/personasController');
 const librosController = require('../controllers/librosController');
@@ -12,7 +12,7 @@ router.use(express.json())
 router.use(express.urlencoded({ extended: true }))
 
 //Ruta para el home
-router.get('/', home_controller.get_home_page);
+router.get('/', homeController.getHomePage);
 
 //Rutas Categorias
 router.get('/categoria',categoriasController.categoriaGet);
@@ -28,7 +28,7 @@ router.put('/persona/:id', personasController.personaUpdateId);
 router.delete('/persona/:id', personasController.personaDeleteId);
 
 //Rutas Libros
-router.get("/libro", librosController.libroGetAll);
+router.get('/libro', librosController.libroGetAll);
 router.get("/libroGetId", librosController.libroGetId);
 router.post("/libro", librosController.libroCreate);
 

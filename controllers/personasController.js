@@ -1,6 +1,7 @@
 const { raw } = require('body-parser');
 
-const personas = require('../models/personas');
+const personas = require('../models/Personas');
+const libros=require('../models/Libros');
 
 const personasController = {};
 
@@ -157,34 +158,37 @@ personasController.personaUpdateId = async(req, res) => {
 }
 
 //Elimina persona por id
-personasController.personaDeleteId = async(req, res) => {
-    const { id } = req.params;
+personasController.personaDeleteId = async(req, res,next) => {
+    const { id } = req.params;    
     try {
-        const result = await personas.destroy({ where: { id } });
-        console.log(result);
-        if (result == 0) {
-            return res.status(404).json({ message: 'No existe la persona a eliminar' });
-        }
-        //falta corroborar
-        //
-        //
-        
-        //validar que la categoría no tenga ningún libro para eliminar      
-        result=await categorias.destroy({FROM: {libro}, where :{id_persona}});
-        
+        let result=await libros.findAll({
+            where: {
+                id_persona: id
+            }
+        }); 
+        //console.log(result);
+
         if (result.length > 0) {
-            throw new Error("Esta persona tiene libros asociados, no se puede borrar");
-        }
-        else {
-            return res.status(200).json({
-                message: 'Persona con id:' + id + ' eliminada'
-            });
-        }
-    } catch (err) {
-        res.status(413).json(err);
+            throw new Error("Esta categoría tiene libros asociados, no se puede borrar");
+        } 
+        
+        result=await personas.destroy({
+            where: {
+                id
+            }}
+        ); 
+        console.log('el resultado');
+        console.log(result);
+
+        if(result==0)
+        { 
+            throw new Error('Categoria No Encontrada.');
+        } else {
+            res.json({'mensaje':'Se Borro Correctamente.'});
+        } 
+    } catch(error){
+        next(error)
     }
 }
-
-
 
 module.exports = personasController;

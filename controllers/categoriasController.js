@@ -1,7 +1,8 @@
 //Importamos las dependencias
 const categorias=require('../models/Categorias');
+const libros=require('../models/Libros');
 
-// Controlador para listar todas las categorias - GET
+// Controlador para listar todas las categorias - GET - FUNCIONA OK
 exports.categoriaGet=async(req,res,next)=>{
     try{
         const result=await categorias.findAll(); 
@@ -9,15 +10,14 @@ exports.categoriaGet=async(req,res,next)=>{
         { 
             res.status(200).json(result);
         }
-        else res.status(413).json(result);
-        //else res.json(result).status(413);
+        else res.status(413).json(result);        
     }
     catch(error){        
         next(error)
     }
 }
 
-// Controlador para buscar una categoria por id - GET
+// Controlador para buscar una categoria por id - GET - FUNCIONA OK
 exports.categoriaGetId=async(req,res,next)=>{
     try{
         if(req.params.id==null)   throw new Error('Se esperaba un Parametro id:Int.');
@@ -35,21 +35,16 @@ exports.categoriaGetId=async(req,res,next)=>{
     }
 }
 
-// Controlador para buscar una categoria por nombre - GET
-// FALTA EXPORTARLO O ESTO SOBRA??
+// Metodo para verificar si existe una categoria con ese nombre - FUNCIONA OK
 categoriaGetNombre=async(nombre)=>{
     if(nombre==null || nombre.trim()=='')   throw new Error('Se esperaba un Parametro Nombre:String.');
     const result=await categorias.findOne({where :{nombre}}); 
     return(result!=null?true:false);
 }
 
-// Controlador para crear una categoria - POST
+// Controlador para crear una categoria - POST - FUNCIONA OK
 exports.categoriaCreate=async(req,res,next)=>{
-    try{
-        //if(req.body.nombre==null || req.body.nombre.trim()=='')   throw new Error('Se esperaba un Parametro Nombre:String.');
-        
-        //validación de nombre: campo no vacío, no INT
-        //Combino con la validación de arriba xq esa toma INT como válido
+    try{        
         if(!req.body.nombre || !/[a-z]+$/i.test(req.body.nombre.trim())){
             throw new Error("El nombre debe contener solo letras y no puede estar vacío");
         }
@@ -69,7 +64,7 @@ exports.categoriaCreate=async(req,res,next)=>{
     }
 }
 
-// Controlador para eliminar una categoria por id - DELETE
+// Controlador para eliminar una categoria por id - DELETE - FUNCIONA OK
 exports.categoriaDelete=async(req,res,next)=>{
     try{
         //Esta validación la sacaría...no se activa
@@ -77,26 +72,32 @@ exports.categoriaDelete=async(req,res,next)=>{
         
         const id=req.params.id;
         if(!parseInt(id,10)) throw new Error('Se esperaba un Numero.');
-        const result=await categorias.destroy({where :{id}}); 
+
+        //valida que la categoría no tenga ningún libro para eliminar  
+        let result=await libros.findAll({
+            where: {
+                id_categoria: id
+            }
+        }); 
+        console.log(result);
+
+        if (result.length > 0) {
+            throw new Error("Esta categoría tiene libros asociados, no se puede borrar");
+        } 
+        
+        result=await categorias.destroy({
+            where: {
+                id
+            }}
+        ); 
         console.log(result);
 
         if(result==0)
         { 
             throw new Error('Categoria No Encontrada.');
-        }
-        
-        //falta corroborar
-        //
-        //        
-        //valida que la categoría no tenga ningún libro para eliminar      
-        result=await categorias.destroy({FROM: {libro}, where :{id_categoria}});
-        //query = "SELECT * FROM libro WHERE categoria_id = ?";
-        //respuesta = await qy(query, [req.params.id]);
-
-        if (result.length > 0) {
-            throw new Error("Esta categoría tiene libros asociados, no se puede borrar");
-        }
-        else  res.json({'mensaje':'Se Borro Correctamente.'});
+        } else {
+            res.json({'mensaje':'Se Borro Correctamente.'});
+        } 
     }
     catch(error){
         next(error)
