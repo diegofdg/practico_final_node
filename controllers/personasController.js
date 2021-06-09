@@ -44,10 +44,10 @@ personasController.personaAdd = async(req, res) => {
 
     try {
         
-        const nombre = req.body.nombre;
-        const apellido = req.body.apellido;
-        const alias = req.body.alias;
-        const email = req.body.email;
+        const nombre = req.body.nombre.toUpperCase();
+        const apellido = req.body.apellido.toUpperCase();
+        const alias = req.body.alias.toUpperCase();
+        const email = req.body.email.toUpperCase();
 
                 
         //Valido nombre tenga contenido y sea STRING

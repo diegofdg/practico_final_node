@@ -29,7 +29,14 @@ router.delete('/persona/:id', personasController.personaDeleteId);
 
 //Rutas Libros
 router.get('/libro', librosController.libroGetAll);
-router.get("/libroGetId", librosController.libroGetId);
-router.post("/libro", librosController.libroCreate);
+router.get('/libro/:id', librosController.libroGetId);
+
+//nahuel---------------------------------------------
+router.post('/libro', librosController.libroAdd);
+router.put('/libro/:id', librosController.libroUpdateDescripcionPorId);
+router.put('/libro/prestar/:id', librosController.libroPrestar);
+router.put('/libro/devolver/:id',librosController.libroDevolver);
+router.delete('/libro/:id', librosController.DeleteLibro);
+//nahuel---------------------------------------------
 
 module.exports = router;

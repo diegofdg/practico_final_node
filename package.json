@@ -1,9 +1,8 @@
 {
   "name": "practicofinal",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
-  "scripts": {    
+  "scripts": {
     "start": "nodemon ./index.js"
   },
   "author": "",
@@ -18,5 +17,6 @@
   },
   "devDependencies": {
     "nodemon": "^2.0.7"
-  }
+  },
+  "description": ""
 }

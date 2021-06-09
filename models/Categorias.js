@@ -25,4 +25,5 @@ const Categorias=db.define('categorias', {
     }
 });
 
+
 module.exports = Categorias;
