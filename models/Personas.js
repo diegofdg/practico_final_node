@@ -14,10 +14,10 @@ const Personas = db.define('personas', {
 }, {
     hooks: {
         beforeCreate(persona) {
-            const nombre = persona.nombre.toUpperCase().trim();
-            const apellido = persona.apellido.toUpperCase().trim();
-            const alias = persona.alias.toUpperCase().trim();
-            const email = persona.email.toUpperCase().trim();
+            persona.nombre = persona.nombre.toUpperCase().trim();
+            persona.apellido = persona.apellido.toUpperCase().trim();
+            persona.alias = persona.alias.toUpperCase().trim();
+            persona.email = persona.email.toUpperCase().trim();
         }
     }
 });

@@ -1,5 +1,7 @@
 const Sequelize = require('sequelize');
 const db = require('../config/db');
+const Categorias = require("./Categorias");
+const Personas = require("./Personas");
 
 
 const Libros = db.define('libros', {
@@ -26,90 +28,19 @@ const Libros = db.define('libros', {
                     if(value.trim()==''){throw new Error('Cadena Vacia');}
                 }
             }        
-        },
-    categoria_id:{
-        type: Sequelize.INTEGER,
-        name: 'FK_Libros_Categorias',
-        references: {
-          model: 'categorias',
-          key: 'id'
-        }},
-    persona_id:{
-            type: Sequelize.INTEGER,
-            name: 'FK_Libros_Prestado_Persona',
-            references: {
-              model: 'personas',
-              key: 'id'
-            }
-        }
-   
-    }        
-, {
+    },   
+}, {
     hooks: {
         beforeCreate(libro) {
-            const nombre = libro.nombre.toUpperCase().trim();            
-            const descripcion = libro.descripcion.toUpperCase().trim();            
+            libro.nombre = libro.nombre.toUpperCase().trim();            
+            libro.descripcion = libro.descripcion.toUpperCase().trim();            
         }
     }
 });
 //nahuel-------------------------- END-
 
+//Creo las relaciones con categorias y personas
+Libros.belongsTo(Personas); //personaId
+Libros.belongsTo(Categorias); //categoriaId
+
 module.exports = Libros;
-
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-const Sequelize = require('sequelize');
-const db = require('../config/db');
-
-const Libros=db.define('libros', {
-    id:{
-        type:Sequelize.INTEGER,
-        primaryKey:true,
-        autoIncrement:true
-    },
-    nombre:{
-        type:Sequelize.STRING(40)        
-    },    
-    descripcion:{
-        type:Sequelize.TEXT(300)        
-    },
-    id_categoria:{
-        type:Sequelize.INTEGER(10)        
-    },
-    id_persona:{
-        type:Sequelize.INTEGER(10)
-    }    
-},{
-    hooks:{
-        beforeCreate:(libro)=> {
-            libro.nombre=libro.nombre.toUpperCase().trim();
-            libro.descripcion=libro.descripcion.toUpperCase().trim();
-            libro.id_categoria = libro.id_categoria.trim();
-            libro.id_persona = libro.id_persona.trim();            
-        }
-    }
-});
-
-module.exports = Libros;*/

@@ -163,13 +163,13 @@ personasController.personaDeleteId = async(req, res,next) => {
     try {
         let result=await libros.findAll({
             where: {
-                id_persona: id
+                personaId: id
             }
         }); 
         //console.log(result);
 
         if (result.length > 0) {
-            throw new Error("Esta categoría tiene libros asociados, no se puede borrar");
+            throw new Error("Esta persona tiene libros asociados, no se puede borrar");
         } 
         
         result=await personas.destroy({
@@ -182,7 +182,7 @@ personasController.personaDeleteId = async(req, res,next) => {
 
         if(result==0)
         { 
-            throw new Error('Categoria No Encontrada.');
+            throw new Error('Persona No Encontrada.');
         } else {
             res.json({'mensaje':'Se Borro Correctamente.'});
         } 

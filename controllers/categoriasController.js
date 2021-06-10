@@ -76,7 +76,7 @@ exports.categoriaDelete=async(req,res,next)=>{
         //valida que la categoría no tenga ningún libro para eliminar  
         let result=await libros.findAll({
             where: {
-                id_categoria: id
+                categoriaId: id
             }
         }); 
         console.log(result);
