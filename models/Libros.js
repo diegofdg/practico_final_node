@@ -1,3 +1,4 @@
+const { ForeignKeyConstraintError } = require('sequelize');
 const Sequelize = require('sequelize');
 const db = require('../config/db');
 const Categorias = require("./Categorias");
@@ -10,7 +11,6 @@ const Libros = db.define('libros', {
         primaryKey: true,
         autoIncrement: true
     },
-//nahuel-------------------------- BEGIN-
     nombre:{
         type: Sequelize.STRING(40),
         allowNull:false,
@@ -37,10 +37,8 @@ const Libros = db.define('libros', {
         }
     }
 });
-//nahuel-------------------------- END-
-
-//Creo las relaciones con categorias y personas
-Libros.belongsTo(Personas); //personaId
-Libros.belongsTo(Categorias); //categoriaId
+//Crea las relaciones con categorias y personas
+Libros.belongsTo(Personas,{foreignKey:'persona_id'}); //persona_id
+Libros.belongsTo(Categorias,{foreignKey:'categoria_id'}); //categoria_id
 
 module.exports = Libros;
