@@ -1,102 +1,122 @@
 //Importamos las dependencias
-const categorias=require('../models/Categorias');
-const libros=require('../models/Libros');
+const Categorias = require('../models/Categorias');
+const Libros = require('../models/Libros');
 
-// Controlador para listar todas las categorias - GET - FUNCIONA OK
-exports.categoriaGet=async(req,res,next)=>{
+// Listar todas las categorias
+exports.categoriaGet = async(req,res,next) => {
     try{
-        const result=await categorias.findAll(); 
-        if(result!='')
-        { 
+        const result = await Categorias.findAll(); 
+        if(result != ''){ 
             res.status(200).json(result);
+        } else {
+            res.status(413).json({
+                'Error': 'No Existen Categorías Cargadas' 
+            });        
         }
-        else res.status(413).json(result);        
     }
     catch(error){        
         next(error)
     }
 }
 
-// Controlador para buscar una categoria por id - GET - FUNCIONA OK
-exports.categoriaGetId=async(req,res,next)=>{
+// Buscar una categoria por id
+exports.categoriaGetId = async(req,res,next) => {
     try{
-        if(req.params.id==null)   throw new Error('Se esperaba un Parametro id:Int.');
-        const id=req.params.id;
-        if(!parseInt(id,10)) throw new Error('Se esperaba un Numero.');
-        const result=await categorias.findOne({where :{id}}); 
-        if(result!=null)
-        { 
-            res.json(result);
+        if(req.params.id == null){
+            throw new Error('Se esperaba un Parámetro id:Int.');
         }
-        else  throw new Error('Categoria No Encontrada.');
-    }
-    catch(error){
-        next(error)
-    }
-}
-
-// Metodo para verificar si existe una categoria con ese nombre - FUNCIONA OK
-categoriaGetNombre=async(nombre)=>{
-    if(nombre==null || nombre.trim()=='')   throw new Error('Se esperaba un Parametro Nombre:String.');
-    const result=await categorias.findOne({where :{nombre}}); 
-    return(result!=null?true:false);
-}
-
-// Controlador para crear una categoria - POST - FUNCIONA OK
-exports.categoriaCreate=async(req,res,next)=>{
-    try{        
-        if(!req.body.nombre || !/[a-z]+$/i.test(req.body.nombre.trim())){
-            throw new Error("El nombre debe contener solo letras y no puede estar vacío");
-        }
-
-        const nombre=req.body.nombre.trim();
-
-        if(await categoriaGetNombre(nombre)) throw new Error('La Categoria ya se encuentra Ingresada.');
-
-        result=await categorias.create({nombre :nombre}); 
-        if(result!=null){
-            res.json(result.dataValues);
-        }
-        else throw new Error('Error Inesperado.');
-    }
-    catch(error){
-        next(error)
-    }
-}
-
-// Controlador para eliminar una categoria por id - DELETE - FUNCIONA OK
-exports.categoriaDelete=async(req,res,next)=>{
-    try{
-        //Esta validación la sacaría...no se activa
-        if(req.params.id==null)   throw new Error('Se esperaba un Parametro id:Int.');
-        
-        const id=req.params.id;
-        if(!parseInt(id,10)) throw new Error('Se esperaba un Numero.');
-
-        //valida que la categoría no tenga ningún libro para eliminar  
-        let result=await libros.findAll({
-            where: {
-                categoriaId: id
+        const id = req.params.id;
+        if(!parseInt(id,10)){
+            throw new Error('Se esperaba un Numero.');
+        } 
+        const result = await Categorias.findOne({
+            where :{
+                id
             }
         }); 
-        console.log(result);
-
-        if (result.length > 0) {
-            throw new Error("Esta categoría tiene libros asociados, no se puede borrar");
+        if(result != null){ 
+            res.status(200).json(result);
+        } else {
+            res.status(413).json({
+                'Error':'Categoría No Encontrada' 
+            });
         } 
-        
-        result=await categorias.destroy({
+    }
+    catch(error){
+        next(error)
+    }
+}
+
+// Metodo para verificar si existe una categoria con ese nombre
+categoriaGetNombre = async(nombre) => {
+    if(nombre==null || nombre.trim()==''){
+        throw new Error('Se esperaba un Parametro Nombre:String.');
+    }   
+    const result = await Categorias.findOne({
+        where :{
+            nombre
+        }
+    }); 
+    return (result != null ? true : false);
+}
+
+// Crear una categoria
+exports.categoriaCreate = async(req,res,next) => {
+    try{        
+        if(!req.body.nombre || !/[a-z]+$/i.test(req.body.nombre.trim())){
+            throw new Error('El nombre debe contener solo letras y no puede estar vacío');
+        }
+        const nombre = req.body.nombre.trim();
+        if(await categoriaGetNombre(nombre)){            
+            res.status(413).json({
+                'Error': 'La Categoría ya se encuentra registrada' 
+            });
+            return;
+        }
+        result = await Categorias.create({
+            nombre
+        }); 
+        if(result != null){
+            res.status(200).json(result.dataValues);
+        } else {
+            throw new Error('Hubo un error al intentar guardar la categoría');
+        }
+    }
+    catch(error){
+        next(error);
+    }
+}
+
+// Eiminar una categoria por id
+exports.categoriaDelete = async(req,res,next) => {
+    try{        
+        const id = req.params.id;
+        if(!parseInt(id,10)){
+            throw new Error('Se esperaba un Numero.');
+        } 
+        //valida que la categoría no tenga ningún libro para eliminar  
+        let result = await Libros.findAll({
+            where: {
+                categoria_id: id
+            }
+        });
+        if(result.length > 0){
+            res.status(413).json({
+                "Error": "Esta categoría tiene libros asociados, no se puede borrar" 
+            });     
+            return;       
+        }         
+        result = await Categorias.destroy({
             where: {
                 id
             }}
         ); 
-        console.log(result);
-
-        if(result==0)
-        { 
-            throw new Error('Categoria No Encontrada.');
+        if(result == 0) { 
+            res.status(413).json({
+                'Error': 'Categoría No Encontrada.' 
+            });                        
         } else {
-            res.json({'mensaje':'Se Borro Correctamente.'});
+            res.status(200).json({'Mensaje': 'Categoría Eliminada.'});            
         } 
     }
     catch(error){

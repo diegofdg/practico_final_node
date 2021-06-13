@@ -27,7 +27,7 @@ app.use('/', routes);
 // Manejo de los errores con un middleware
 app.use((error,req,res,next)=>{
     console.log('Hubo un error inesperado'); 
-    res.status(413).send({'Error inesperado':error.message});     
+    res.status(413).send({'Error inesperado': error.message});     
 });
 
 //Creamos el Servidor
