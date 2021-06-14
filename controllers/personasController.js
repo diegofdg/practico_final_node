@@ -11,10 +11,10 @@ personasController.personasGetAll = async(req, res, next) => {
         const result = await Personas.findAll();        
         if (result.length === 0) {
             res.status(413).json({
-                'Error': 'No Existen Personas registradas'
+                'Error': 'No existen personas registradas'
             });
         } else {
-            res.status(200).json(result);
+            res.status(200).json({'Las personas que se encuentran registradas son': result});
         }
     } catch (error) {
         next(error);
@@ -29,7 +29,7 @@ personasController.personaGetId = async(req, res, next) => {
         
         //Verificamos que id sea un número
         if(!parseInt(id,10)){
-            throw new Error('Se esperaba un Numero.');
+            res.status(413).json({ 'Error': 'Se esperaba un Número'});
         }     
         //Consultamos 
         const result = await Personas.findAll({
@@ -39,37 +39,37 @@ personasController.personaGetId = async(req, res, next) => {
         });        
         if (result.length === 0) {
             return res.status(413).json({
-                'Error':'Persona No Encontrada' 
+                'Error':'Persona no encontrada' 
             });
         } else {
-            res.status(200).json(result);
+            res.status(200).json({'la persona solicitada es': result});
         }
     } catch (error) {
         next(error);
     }
 }
 
-// Crear una persona
+// Guardar una persona
 personasController.personaAdd = async(req, res, next) => {
     try {        
         // Valido nombre tenga contenido y sea STRING
         if(!req.body.nombre || typeof req.body.nombre === undefined || !/[a-z]+$/i.test(req.body.nombre.trim())){
-            throw new Error('El nombre es obligatorio, debe contener solo letras y no puede estar vacío');
+            return res.status(413).json({ 'Error': 'El nombre es obligatorio, debe contener solo letras y no puede estar vacío'});
         }
         
         //Valido apellido tenga contenido y sea STRING
         if(!req.body.apellido || !/[a-z]+$/i.test(req.body.apellido.trim())){
-            throw new Error('El apellido debe contener solo letras y no puede estar vacío');
+            return res.status(413).json({ 'Error': 'El apellido es obligatorio, debe contener solo letras y no puede estar vacío'});
         }
 
         //Valido alias tenga contenido y sea STRING
         if(!req.body.alias || !/[a-z]+$/i.test(req.body.alias.trim())){
-            throw new Error('El alias debe contener solo letras y no puede estar vacío');
+            return res.status(413).json({ 'Error': 'El alias es obligatorio, debe contener solo letras y no puede estar vacío'});
         }
 
         //Valido la estructura del email
         if(!/^[-\w.%+]{1,64}@(?:[A-Z0-9-]{1,63}\.){1,125}[A-Z]{2,63}$/i.test(req.body.email)){
-            throw new Error('El email debe tener cierta estructura: ejemplo@ejemplo.com');
+            return res.status(413).json({ 'Error': 'El email es obligatorio y debe tener cierta estructura: ejemplo@ejemplo.com'});
         }
         
         //Convierto los datos enviados por POST a mayusculas
@@ -93,10 +93,10 @@ personasController.personaAdd = async(req, res, next) => {
                 email: email
             });            
             if (result.length === 0) {
-                throw new Error('Hubo un error al intentar guardar la Persona');
+                res.status(413).json({ 'Error': 'Hubo un error al intentar guardar la persona'});
                 
             } else {
-                res.status(200).json(result.dataValues);
+                res.status(200).json({'La persona ingresada es': result.dataValues});
             }
         } else {
             return res.status(413).json({
@@ -115,28 +115,28 @@ personasController.personaUpdateId = async(req, res, next) => {
 
         //Verificamos que id sea un número
         if(!parseInt(id,10)){
-            throw new Error('Se esperaba un Numero.');
+            res.status(413).json({ 'Error': 'Se esperaba un número'});
         }     
 
         // buscamos el id capturado
         const result = await Personas.findByPk( id );
         
         if(!result){
-            return res.status(413).json({'Error':'Persona No Encontrada'});
+            return res.status(413).json({'Error':'Persona no encontrada'});
         } else {       
             // Valido nombre tenga contenido y sea STRING
             if(!req.body.nombre || typeof req.body.nombre === undefined || !/[a-z]+$/i.test(req.body.nombre.trim())){
-                throw new Error('El nombre es obligatorio, debe contener solo letras y no puede estar vacío');
+                res.status(413).json({ 'Error': 'El nombre es obligatorio, debe contener solo letras y no puede estar vacío'});
             }
             
             //Valido apellido tenga contenido y sea STRING
             if(!req.body.apellido || !/[a-z]+$/i.test(req.body.apellido.trim())){
-                throw new Error('El apellido debe contener solo letras y no puede estar vacío');
+                res.status(413).json({ 'Error': 'El apellido es obligatorio, debe contener solo letras y no puede estar vacío'});
             }
 
             //Valido alias tenga contenido y sea STRING
             if(!req.body.alias || !/[a-z]+$/i.test(req.body.alias.trim())){
-                throw new Error('El alias debe contener solo letras y no puede estar vacío');
+                res.status(413).json({ 'Error': 'El alias es obligatorio, debe contener solo letras y no puede estar vacío'});
             }
             
             //Convierto los datos enviados por POST a mayusculas
@@ -155,7 +155,7 @@ personasController.personaUpdateId = async(req, res, next) => {
                 }
             });                
             if (actualizo == 0) {                    
-                throw new Error('Hubo un error al intentar actualizar la Persona');
+                res.status(413).json({ 'Error': 'Hubo un error al intentar actualizar la persona'});
             } else {      
                 res.status(200).json({'Mensaje': 'Datos del id ' + id + ' actualizados.'});
             }           
@@ -173,7 +173,7 @@ personasController.personaDeleteId = async(req, res,next) => {
     try {
         //Verificamos que id sea un número
         if(!parseInt(id,10)){
-            throw new Error('Se esperaba un Numero.');
+            res.status(413).json({ 'Error': 'Se esperaba un número'});
         }     
         let result = await Libros.findAll({
             where: {
@@ -182,7 +182,7 @@ personasController.personaDeleteId = async(req, res,next) => {
         }); 
         if (result.length > 0) {
             return res.status(413).json({
-                "Error": "Esta Persona tiene libros asociados, no se puede borrar" 
+                "Error": "Esta persona tiene libros asociados, no se puede borrar" 
             });   
         } 
         
@@ -193,10 +193,10 @@ personasController.personaDeleteId = async(req, res,next) => {
         ); 
         if(result == 0) { 
             res.status(413).json({
-                'Error': 'Persona No Encontrada.' 
+                'Error': 'Persona no encontrada' 
             });                        
         } else {
-            res.status(200).json({'Mensaje': 'Persona Eliminada.'});            
+            res.status(200).json({'Mensaje': 'Persona eliminada'});            
         } 
     } catch(error){
         next(error)

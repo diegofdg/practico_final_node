@@ -1,156 +1,166 @@
-const libros = require('../models/Libros');
-const categorias = require('../models/Categorias');
-const personas = require('../models/Personas');
+const Libros = require('../models/Libros');
+const Categorias = require('../models/Categorias');
+const Personas = require('../models/Personas');
 
 const librosController = {};
 
-//Incorporar Nuevo Libro
-librosController.libroAdd = async(req, res) => {
+// Guardar un libro
+librosController.libroAdd = async(req, res, next) => {
     try {
+        let descripcion;
+        //verifica que la descripcion no sea nula para que permitir usar uppercase
+        if(descripcion != null){
+            descripcion = req.body.descripcion.toUpperCase(); //toma el campo descripcion traido del body y lo convierte a mayusculas            
+        }
         const nombre = req.body.nombre.toUpperCase(); //toma el campo nombre traido del body y lo convierte a mayusculas      
-        const descripcion = req.body.descripcion.toUpperCase(); //toma el campo descripcion traido del body y lo convierte a mayusculas            
+        
         const categoria_id = req.body.categoria_id;      
         let persona_id = req.body.persona_id;           
 
         //verifica que la categoria no este vacia y el nombre tampoco este vacio
-        if (categoria_id.trim()=='' || nombre.trim()==''  ){
-            console.log('entro aca')
-            return res.json({message: " - nombre y categoría son datos obligatorios -"});
+        if(!nombre || !/[a-z]+$/i.test(nombre.trim())){
+            return res.status(413).json({'Error': 'El nombre es obligatorio, debe contener solo letras y no puede estar vacío'});
         }
         //verifica que el campo categoriaId sea un dato valido
         if (!categoria_id ||  !/[0-9]+$/i.test(categoria_id.trim())){
-            return res.json({message: "la categoría debe ser un valor numéricos"});
+            return res.status(413).json({'Error': 'La categoría es obligatoria, debe contener solo números y no puede estar vacío'});
         }
-       //busca la existencia de la categoria en la que se intenta incluir el libro
+
+       //busca la existencia de la categoria en la que se intenta incluir el libro        
+       const verifCategoria = await Categorias.findAll({
+           where:{
+               id:categoria_id
+           }
+       });
         
-       const verifCategoria = await categorias.findAll({where:{id:categoria_id}});
-        
-        if (verifCategoria.length =='' ) {
-            return res.json({message: " - no existe la categoria indicada -"});
-        }
+        if(verifCategoria.length =='' ){
+            return res.status(413).json({
+                'Error': "No existe la categoría indicada"
+            });
+        }   
+
         //si el libro se ingresa sin datos de personaId el valor de personaId se carga en null
-        if (persona_id.trim() ==='') {
+        if(persona_id.trim() ===''){
             persona_id = null;
-        }else { //si el dato de persona_id no es vacio se realiza la comprobacion de que persona_id sea un dato valido (numerico)
+        } else { //si el dato de persona_id no es vacio se realiza la comprobacion de que persona_id sea un dato valido (numerico)
             if (!persona_id ||  !/[0-9]+$/i.test(persona_id.trim())){
-                return res.json({message: "la persona debe ser un valor numérico"}); 
+                return res.status(413).json({'Error': "La persona debe ser un valor numérico"}); 
             } else {// verifica que la persona exista en la tabla personas validando personaId en la tabla
-                const verifPersona = await personas.findAll({where:{id:persona_id}});
+                const verifPersona = await Personas.findAll({where:{id:persona_id}});
                     if ( verifPersona.length === 0 ){//|| verifPersona.result == null    )   {
-                    return res.json({message: " - no existe la persona indicada -"});
+                        return res.status(413).json({'Error': "No existe la persona indicada"});
                 }
             }
         }       
         // valida la existencia del libro a incorporar buscando en la tabla libros si existe un libro con ese nombre y categoria
-        const verifNombreyCat = await libros.findAll({where:{nombre,categoria_id}});   
+        const verifNombreyCat = await Libros.findAll({where:{nombre,categoria_id}});   
         if ( verifNombreyCat.length == 0) { //si no encuentra una coincidencia de libro y categoria se procede a incorporar el libro
-            const result = await libros.create({
-                nombre: nombre,
-                descripcion:descripcion,
-                categoria_id:categoria_id,
-                persona_id:persona_id
+            const result = await Libros.create({
+                nombre,
+                descripcion,
+                categoria_id,
+                persona_id,
             });
             console.log("resultado Incorporación", result.length);
                 if (result.length === 0) {
-                    return res.status(413).json({ message: 'Error: No se ha podido incorporar el nuevo Libro' });
+                    return res.status(413).json({'Error': 'No se ha podido incorporar el nuevo Libro'});
                 } else {
-                    return res.status(200).json({ message: 'Libro registrado', result });
+                    return res.status(200).json({'El libro ingresado es': result.dataValues});
                 }              
         } 
         else {
-            return res.status(413).json({ message: ' - ese libro ya existe -' });
+            return res.status(413).json({'Error': 'Ese libro ya existe'});
         }
-    } catch (err) {
-        res.json(err);
+    } catch (error) {
+        next(error);
     }
 }
 
 //prestar libro por id,  cargando en el campo personaId de libro el id de persona
-librosController.libroPrestar = async(req, res) => {      
+librosController.libroPrestar = async(req, res, next) => {      
     const { id } = req.params;    
 
     const persona_id = req.body.persona_id; //tomo el id de la persona a la que se le presta el libro y que pasa por el body como param
     if  (persona_id ==""|| !/[0-9]+$/i.test(persona_id.trim())){// verifica que el id de la persona a la que se presta no sea vacio ni distinto de numero
-        return res.json({ message: ' - ingrese un dato valido -' });
+        return res.status(413).json({ 'Error': 'Persona_id no puede estar vacío y debe ser un número' });
     }
-    let result = await personas.findByPk(  persona_id );  //consulto la existencia de la persona 
+    let result = await Personas.findByPk(  persona_id );  //consulto la existencia de la persona 
         
     if (!result) { //si el resultado es vacio la persona no existe en la bd con ese id
-        return res.status(413).json({ message: ' - no se encontro la persona a la que se quiere prestar el libro -' });
+        return res.status(413).json({ 'Error': 'No se encontro la persona a la que se quiere prestar el libro' });
     }
 
         //si el resultado de buscar a la persona por el id es verdadero procedo a la busqueda de la existencia del libro por id
-    result = await libros.findByPk( id );              //busca el id del libro pasado en la url
+    result = await Libros.findByPk( id );              //busca el id del libro pasado en la url
         
     if (!result) { //si el resultado de la busqueda es falso mostrara el mensaje de no se encontro el libro
-        return res.status(413).json({ message: ' - no se encontro el libro -' });
+        return res.status(413).json({ 'Error': 'No se encontro el libro' });
     }    // en caso de que la busqueda del libro por id sea verdadera  se continua y se verifica que no este prestado
     if (result.persona_id != null) { // si el campo personaId del libro buscado no es null entonces el libro esta prestado
-        return res.status(413).json({ message: ' - el libro ya se encuentra prestado, no se puede prestar hasta que no se devuelva -' });
+        return res.status(413).json({ 'Error': 'El libro ya se encuentra prestado, no se puede prestar hasta que no se devuelva' });
     }
     else { // si el campo personaId es null procede a realizar el update del campo personaId 
         try {                
-            const update = await libros.update({
+            const update = await Libros.update({
                 persona_id: persona_id},
                     {where: {id: id}
             });                                            
             console.log(update[0]);  
             if (update === 0) {                    
-                return res.status(404).json({ message: ' - no se actualizaron los datos -' });
+                return res.status(404).json({ 'Error': 'No se actualizaron los datos' });
             } else {                    
-                return res.status(200).json({ message: ' - se presto correctamente - ' });
+                return res.status(200).json({ message: 'Se prestó correctamente' });
             }
-        } catch (err) {
-            res.json(err,{message});
+        } catch (error) {
+            next(error);
         }
     }
 };
 
 // devolver libro por id
-librosController.libroDevolver = async(req, res) => {
+librosController.libroDevolver = async(req, res, next) => {
     const { id } = req.params;    
         
     if  (id ==""|| !/[0-9]+$/i.test(id.trim())){// verifica que el id del libro a devolver sea numerico y no vacio
-        return res.json({ message: ' - ingrese un dato valido -' });
+        return res.status(413).json({ 'Error': 'Ingrese un dato válido' });
     }
-    const result = await libros.findByPk(id);  //consulto la existencia del libro
+    const result = await Libros.findByPk(id);  //consulto la existencia del libro
         
     if (!result) { //si el resultado es vacio el libro no existe en la bd con ese id
-        return res.json({ message: ' - ese libro no existe -' });
+        return res.status(413).json({ 'Error': 'Ese libro no existe' });
     }        
          
     if (result.persona_id != null) { // si el campo personaId del libro buscado no es null entonces el libro esta prestado
         try{
-            const update = await libros.update({
+            const update = await Libros.update({
                 persona_id:null}, //se realiza el update poniendo en null el campo persona _id
                     {where: {id: id}                
-                });    
-            console.log(update[0]);  
+                });                
             if (update === 0) {                    
-                return res.status(404).json({ message: ' - no se actualizaron los datos -' });
+                return res.status(404).json({ 'Error': 'No se actualizaron los datos' });
             } else {                    
-                return res.status(200).json({ message: ' - se realizo la devolucion correctamente - ' });
+                return res.status(200).json({ message: 'Se realizó la devolución correctamente' });
             }
-            }catch (err) {
-                res.status(413).json(err,  ' - error inesperado - ');
+            }catch (error) {
+                next(error);
             }
     } else { // si el campo personaId era null no estaba prestado el libro
-        return res.json({ message: ' - el libro no estaba prestado! -' });                
+        return res.json({ message: 'El libro no estaba prestado!' });                
     }              
 };
 
 //Actualiza descripcion del libro por id
-librosController.libroUpdateDescripcionPorId = async(req, res) => {
+librosController.libroUpdateDescripcionPorId = async(req, res, next) => {
     const { id } = req.params;
-    const result = await libros.findByPk( id );        
+    const result = await Libros.findByPk( id );        
     if (!result) {
-        return res.status(404).send({ message: ' - no existe el id solicitado -' });
+        return res.status(404).send({ 'Error': 'No existe el id solicitado' });
     }           
            // const nombre = req.body.nombre;
     const descripcion = req.body.descripcion.toUpperCase(); 
            // const categoriaId = req.body.categoriaId;                
     try {
-        const update = await libros.update({
+        const update = await Libros.update({
         descripcion: descripcion                
         }, 
         {
@@ -160,73 +170,83 @@ librosController.libroUpdateDescripcionPorId = async(req, res) => {
         });
         console.log(update[0]);
         if (update == 0) {                    
-            return res.status(413).json({ message: ' - no se actualizaron los datos -' });
+            return res.status(413).json({ 'Error': 'No se actualizaron los datos' });
         } else {                    
-            return res.status(200).json({ message:'id: ' + id + ' - modificado - ', result });
+            return res.status(200).json({ 'El libro modificado es': result.dataValues });
         }
-    } catch (err) {
-        res.json(err);
+    } catch (error) {
+        next(error);
     }
 }
 
 
 //eliminar libro por id
-librosController.DeleteLibro= async(req,res) => {
+librosController.DeleteLibro= async(req,res,next) => {
     const { id } = req.params;        
     if(!id || !/[0-9]+$/i.test(id.trim())){ //verifica que el id pasado sea numerico
-        return res.status(413).json({ message:'-se esperaba un parametro id:Int.'});
+        return res.status(413).json({ 'Error':'Se esperaba un parametro id:Int.'});
     }
-    let result=await libros.findByPk(id);// busca si existe el libro con el id suministrado
+    let result=await Libros.findByPk(id);// busca si existe el libro con el id suministrado
     if (!result) { //si el resultado es vacio el libro no existe en la bd con ese id
-        return res.status(404).json({ message: ' - ese libro no existe -' });
+        return res.status(404).json({ 'Error': 'Ese libro no existe' });
     }
     if (result.persona_id ==null){// si personaId es null el libro no se encuentra prestado y por lo tanto puede ser eliminado
         try{                                
-            result=await libros.destroy({ //realiza el delete de libro donde por id
+            result=await Libros.destroy({ //realiza el delete de libro donde por id
                 where:{id}
             });
-        }catch(err){
-            res.json(err,  ' - error inesperado - ');
+        }catch(error){
+            next(error);
         }  
     }
     if(result > 0){              //si result es mayor a 0 la operacion fue exitosa
-        return res.status(200).json({ message:' - se borro correctamente -'});
+        return res.status(200).json({ message:'Se borró correctamente'});
     }        
     else {
-        return res.status(413).json({message:'- ese libro esta prestado, no se puede borrar ' });
+        return res.status(413).json({'Error':'Ese libro está prestado, no se puede borrar' });
         }
     }
     
-                       
-librosController.libroGetAll = async(req, res) => {
+// Listar todos los libros                       
+librosController.libroGetAll = async(req, res,next) => {
     try {
-        const result = await libros.findAll();
-
-        if (result.length === 0) {
-            return res.status(404).json({ message: 'No hay libros registradas' });
+        const result = await Libros.findAll();
+        if(result != ''){ 
+            return res.status(200).json({'Los libros que se encuentran registrados son': result});
         } else {
-            return res.json(result).status(200);
-        }
-    } catch (err) {
-        res.json(err);
+            return res.status(413).json({
+                'Error': 'No existen libros registrados' 
+            });        
+        }        
+    } catch (error) {
+        next(error);
     }
 };
-//obtiene libro por id
-librosController.libroGetId = async(req, res) => {
+
+// Buscar un libro por id
+librosController.libroGetId = async(req, res, next) => {
     try {
-        //Capturamos el id
-        const { id } = req.params;
-        console.log('Id: ', id);
-        //consultamos 
-        const result = await libros.findAll({ where: { id } });
-        console.log('Result: ', result[0]);
-        if (result.length === 0) {
-            return res.status(413).json({ message: 'No se encuentra ese libro' });
-        } else {
-            return res.status(200).json(result[0]);
+        if(req.params.id == null){
+            return res.status(413).json({ 'Error': 'Se esperaba un parámetro id:Int'});
         }
-    } catch (err) {
-        res.json('Error inesperado', err);
+        const id = req.params.id;
+        if(!parseInt(id,10)){
+            res.status(413).json({ 'Error': 'Se esperaba un número'});
+        } 
+        const result = await Libros.findOne({
+            where: {
+                id
+            }
+        });
+        if(result != null){ 
+            res.status(200).json({'El libro solicitado es': result});
+        } else {
+            res.status(413).json({
+                'Error':'Libro no encontrado' 
+            });
+        }                 
+    } catch (error) {
+        next(error);
     }
 }
 module.exports = librosController;

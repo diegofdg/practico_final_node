@@ -22,20 +22,8 @@ const Libros = db.define('libros', {
     },
     descripcion:{
             type: Sequelize.STRING(254),
-            allowNull:false,
-            validate:{
-                customF(value){
-                    if(value.trim()==''){throw new Error('Cadena Vacia');}
-                }
-            }        
+            allowNull:true            
     },   
-}, {
-    hooks: {
-        beforeCreate(libro) {
-            libro.nombre = libro.nombre.toUpperCase().trim();            
-            libro.descripcion = libro.descripcion.toUpperCase().trim();            
-        }
-    }
 });
 //Crea las relaciones con categorias y personas
 Libros.belongsTo(Personas,{foreignKey:'persona_id'}); //persona_id
