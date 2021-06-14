@@ -10,7 +10,7 @@ exports.categoriaGet = async(req,res,next) => {
             res.status(200).json(result);
         } else {
             res.status(413).json({
-                'Error': 'No Existen Categorías Cargadas' 
+                'Error': 'No Existen Categorías registradas' 
             });        
         }
     }
@@ -49,7 +49,7 @@ exports.categoriaGetId = async(req,res,next) => {
 
 // Metodo para verificar si existe una categoria con ese nombre
 categoriaGetNombre = async(nombre) => {
-    if(nombre==null || nombre.trim()==''){
+    if(nombre == null || nombre.trim() == ''){
         throw new Error('Se esperaba un Parametro Nombre:String.');
     }   
     const result = await Categorias.findOne({
@@ -68,10 +68,9 @@ exports.categoriaCreate = async(req,res,next) => {
         }
         const nombre = req.body.nombre.trim();
         if(await categoriaGetNombre(nombre)){            
-            res.status(413).json({
+            return res.status(413).json({
                 'Error': 'La Categoría ya se encuentra registrada' 
             });
-            return;
         }
         result = await Categorias.create({
             nombre
@@ -79,7 +78,7 @@ exports.categoriaCreate = async(req,res,next) => {
         if(result != null){
             res.status(200).json(result.dataValues);
         } else {
-            throw new Error('Hubo un error al intentar guardar la categoría');
+            throw new Error('Hubo un error al intentar guardar la Categoría');
         }
     }
     catch(error){
@@ -101,10 +100,9 @@ exports.categoriaDelete = async(req,res,next) => {
             }
         });
         if(result.length > 0){
-            res.status(413).json({
-                "Error": "Esta categoría tiene libros asociados, no se puede borrar" 
-            });     
-            return;       
+            return res.status(413).json({
+                "Error": "Esta Categoría tiene libros asociados, no se puede borrar" 
+            });                 
         }         
         result = await Categorias.destroy({
             where: {
