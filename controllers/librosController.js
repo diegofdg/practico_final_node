@@ -6,13 +6,17 @@ const librosController = {};
 
 // Guardar un libro
 librosController.libroAdd = async(req, res, next) => {
-    try {
-        let descripcion;
+    try {    
+        //verifica que el nombre no sea nulo para que permitir usar uppercase
+        let nombre = req.body.nombre;
+        if(nombre != null){
+            nombre = req.body.nombre.toUpperCase(); //toma el campo nombre traido del body y lo convierte a mayusculas      
+        }
         //verifica que la descripcion no sea nula para que permitir usar uppercase
+        let descripcion = req.body.descripcion;
         if(descripcion != null){
             descripcion = req.body.descripcion.toUpperCase(); //toma el campo descripcion traido del body y lo convierte a mayusculas            
         }
-        const nombre = req.body.nombre.toUpperCase(); //toma el campo nombre traido del body y lo convierte a mayusculas      
         
         const categoria_id = req.body.categoria_id;      
         let persona_id = req.body.persona_id;           
@@ -33,14 +37,14 @@ librosController.libroAdd = async(req, res, next) => {
            }
        });
         
-        if(verifCategoria.length =='' ){
+        if(verifCategoria.length == '' ){
             return res.status(413).json({
                 'Error': "No existe la categoría indicada"
             });
         }   
 
         //si el libro se ingresa sin datos de personaId el valor de personaId se carga en null
-        if(persona_id.trim() ===''){
+        if(persona_id.trim() === ''){
             persona_id = null;
         } else { //si el dato de persona_id no es vacio se realiza la comprobacion de que persona_id sea un dato valido (numerico)
             if (!persona_id ||  !/[0-9]+$/i.test(persona_id.trim())){
@@ -76,9 +80,12 @@ librosController.libroAdd = async(req, res, next) => {
     }
 }
 
-//prestar libro por id,  cargando en el campo personaId de libro el id de persona
+// Prestar un libro por id, cargando en el campo personaId de libro el id de persona
 librosController.libroPrestar = async(req, res, next) => {      
-    const { id } = req.params;    
+    const { id } = req.params;  
+    if(!parseInt(id,10)){
+        res.status(413).json({ 'Error': 'Se esperaba un número'});
+    }   
 
     const persona_id = req.body.persona_id; //tomo el id de la persona a la que se le presta el libro y que pasa por el body como param
     if  (persona_id ==""|| !/[0-9]+$/i.test(persona_id.trim())){// verifica que el id de la persona a la que se presta no sea vacio ni distinto de numero
@@ -109,7 +116,7 @@ librosController.libroPrestar = async(req, res, next) => {
             if (update === 0) {                    
                 return res.status(404).json({ 'Error': 'No se actualizaron los datos' });
             } else {                    
-                return res.status(200).json({ message: 'Se prestó correctamente' });
+                return res.status(200).json({ Mensaje: 'Se prestó correctamente' });
             }
         } catch (error) {
             next(error);
@@ -117,8 +124,8 @@ librosController.libroPrestar = async(req, res, next) => {
     }
 };
 
-// devolver libro por id
-librosController.libroDevolver = async(req, res, next) => {
+// Devolver un libro por id
+librosController.libroDevolver = async(req, res) => {
     const { id } = req.params;    
         
     if  (id ==""|| !/[0-9]+$/i.test(id.trim())){// verifica que el id del libro a devolver sea numerico y no vacio
@@ -135,44 +142,50 @@ librosController.libroDevolver = async(req, res, next) => {
             const update = await Libros.update({
                 persona_id:null}, //se realiza el update poniendo en null el campo persona _id
                     {where: {id: id}                
-                });                
+                });    
+            console.log(update[0]);  
             if (update === 0) {                    
                 return res.status(404).json({ 'Error': 'No se actualizaron los datos' });
             } else {                    
-                return res.status(200).json({ message: 'Se realizó la devolución correctamente' });
+                return res.status(200).json({ Mensaje: 'Se realizó la devolución correctamente' });
             }
-            }catch (error) {
-                next(error);
+            }catch (err) {
+                res.status(413).json(err,  'Error inesperado');
             }
     } else { // si el campo personaId era null no estaba prestado el libro
-        return res.json({ message: 'El libro no estaba prestado!' });                
+        return res.json({ Error: 'El libro no estaba prestado!' });                
     }              
 };
 
-//Actualiza descripcion del libro por id
-librosController.libroUpdateDescripcionPorId = async(req, res, next) => {
+// Actualizar la descripcion de un libro por id
+librosController.libroUpdateDescripcionPorId = async(req, res, next) => {    
     const { id } = req.params;
+    if(!parseInt(id,10)){
+        res.status(413).json({ 'Error': 'Se esperaba un número'});
+    } 
     const result = await Libros.findByPk( id );        
     if (!result) {
-        return res.status(404).send({ 'Error': 'No existe el id solicitado' });
+        return res.status(404).send({ "Error":"Libro no encontrado." });
     }           
-           // const nombre = req.body.nombre;
-    const descripcion = req.body.descripcion.toUpperCase(); 
-           // const categoriaId = req.body.categoriaId;                
+    //verifica que la descripcion no sea nula para que permitir usar uppercase
+    let descripcion = req.body.descripcion;
+    if(descripcion != null){
+        descripcion = req.body.descripcion.toUpperCase(); //toma el campo descripcion traido del body y lo convierte a mayusculas            
+    }
     try {
         const update = await Libros.update({
-        descripcion: descripcion                
+            descripcion 
         }, 
         {
             where: {
-                id: id
+                id
             }
-        });
-        console.log(update[0]);
+        });        
+        console.log()
         if (update == 0) {                    
             return res.status(413).json({ 'Error': 'No se actualizaron los datos' });
         } else {                    
-            return res.status(200).json({ 'El libro modificado es': result.dataValues });
+            return res.status(200).json({'Mensaje': 'La descripcion del libro con el id ' + id + ' fue actualizada.'});
         }
     } catch (error) {
         next(error);
@@ -180,11 +193,11 @@ librosController.libroUpdateDescripcionPorId = async(req, res, next) => {
 }
 
 
-//eliminar libro por id
+// Eiminar un libro por id
 librosController.DeleteLibro= async(req,res,next) => {
     const { id } = req.params;        
     if(!id || !/[0-9]+$/i.test(id.trim())){ //verifica que el id pasado sea numerico
-        return res.status(413).json({ 'Error':'Se esperaba un parametro id:Int.'});
+        return res.status(413).json({ 'Error': 'Se esperaba un número'});
     }
     let result=await Libros.findByPk(id);// busca si existe el libro con el id suministrado
     if (!result) { //si el resultado es vacio el libro no existe en la bd con ese id
@@ -200,7 +213,7 @@ librosController.DeleteLibro= async(req,res,next) => {
         }  
     }
     if(result > 0){              //si result es mayor a 0 la operacion fue exitosa
-        return res.status(200).json({ message:'Se borró correctamente'});
+        return res.status(200).json({ Mensaje:'Se borró correctamente'});
     }        
     else {
         return res.status(413).json({'Error':'Ese libro está prestado, no se puede borrar' });
