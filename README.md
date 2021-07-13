@@ -1,9 +1,7 @@
-# Where're my books - Node.js 
-Parte Primera del Proyecto Final del curso "Diplomatura en programacion web full stack con React JS" dictado por el Centro de e-Learning de la Universidad Tecnológica Nacional - Facultad Regional Buenos Aires - UTN.BA
+# **Diplomatura en programación web full stack con React JS**
 
-Alumnos integrantes:
-* Beade, Mario Nahuel
-* Bigatton, Carlos Federico
-* Di Giorgio, Diego
-* Velasco, Guillermo
-* Vuoso, Lucas
+## Trabajo Practico Integrador Modulo 3 y 4: Where'is my books?
+
+- API Rest
+- Conexión a base de datos MySQL
+- Creación de personas, categorías y libros
